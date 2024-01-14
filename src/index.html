@@ -16,15 +16,19 @@
     <section>
       <form class="search-form" action="">
         <input name="search" class="input-search" type="text" placeholder="Search images...">
-        <button type="submit" class="btn-form"><span class="loader load-more-spinner spinner-border spinner-border-sm spinner is-hidden"></span><span>Search</span></button>
+        <button type="submit" class="btn-form">Search</button>
       </form>
     </section>
     <section class="gallery-box">
-      <p class="loading is-hidden">Loading images, please wait...</p>
+      
       <ul class="gallery"></ul>
       
       <div class="btn-load-div">
-      <button type="button" class="btn-load is-hidden"><span class="loader load-more-spinner spinner-border spinner-border-sm spinner is-hidden"></span><span>Load more</span></button>
+      <button type="button" class="btn-load is-hidden">Load more</button>
+      </div>
+      <div class="loading is-hidden">
+        <p>Loading images, please wait...</p>
+        <span class="loader load-more-spinner spinner-border spinner-border-sm spinner"></span>
       </div>
     </section>
 

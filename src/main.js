@@ -12,18 +12,25 @@ const api = axios.create({
     image_type: 'photo',
     orientation: 'horizontal',
     safesearch: true,
-
   }
 });
 
+const messageWarning = () => iziToast.warning({
+  position: 'topRight',
+  message:
+    'Please, fill in the field!',
+});
 
+const messageError = () => iziToast.error({
+            position: 'topRight',
+            message:
+              'Sorry, there are no images matching your search query. Please try again!',
+          });
 
 const gallery = document.querySelector(".gallery");
 const searchForm = document.querySelector(".search-form");
 const loading = document.querySelector(".loading");
 const btnLoad = document.querySelector(".btn-load")
-const loadMoreSpinner = document.querySelector('.load-more-spinner')
-
 
 function renderHits(hits = []) {
   const renderImg = hits.reduce((html, {largeImageURL, webformatURL, tags, likes, views, comments, downloads}) => {
@@ -66,30 +73,34 @@ const getHits = async (params) => {
   } 
 }
 
+
+
 const createGetHitsRequest = (q) => {
   let page = 1;
   let isLastPage = false;
-  const per_page = 3;
+  const per_page = 40;
 
   return async () => {
     try {
-      if (isLastPage) return [];
-
+      if (isLastPage) return;
       const { hits, totalHits } = await getHits({ page, per_page, q });
-      
-      if (page >= Math.ceil(totalHits / per_page)) {
+      if (page >= Math.ceil( totalHits / per_page)) {
         isLastPage = true;
       }
-
+      
       page++;
 
+      if (isLastPage) {btnLoad.style.display = "none"}
+      if (hits.length == 0) {
+        messageError();
+        return;
+      }
       return hits;
     } catch(error) {
       console.error(error);
     }
   };
 }
-
 
 let doFetch = null;
 
@@ -98,21 +109,23 @@ searchForm.addEventListener("submit", async (event) => {
 
   if (doFetch != null) {
     btnLoad.removeEventListener("click", doFetch);
-    btnLoad.classList.add("is-hidden");
     doFetch = null;
   }
-
+ 
   const data = new FormData(event.currentTarget);
   const search = data.get("search");
-
+  if (!search) {
+    messageWarning()
+    return;
+  }
   gallery.innerHTML = "";
-
+  btnLoad.style.display = "block";
   const fetchHits = createGetHitsRequest(search);
-
+  event.currentTarget.reset();
   doFetch = async () => {
     const articles = await makePromiseWithSpinner({
       promise: fetchHits,
-      spinner: loadMoreSpinner
+      spinner: loading,
     })
 
     renderHits(articles);
@@ -120,20 +133,20 @@ searchForm.addEventListener("submit", async (event) => {
 
   await makePromiseWithSpinner({
     promise: doFetch,
-    spinner: loadMoreSpinner
+    spinner: loading,
   });
-
-  btnLoad.classList.remove("is-hidden");
   btnLoad.addEventListener('click', doFetch);
 });
 
 
 const makePromiseWithSpinner = async ({ promise, spinner, className = 'is-hidden' }) => {
   spinner.classList.remove(className);
+  btnLoad.classList.add(className);
 
   const response = await promise();
 
   spinner.classList.add(className);
+  btnLoad.classList.remove(className);
 
   return response;
 };

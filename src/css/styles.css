@@ -44,11 +44,6 @@ img {
   height: auto
 }
 
-.is-hidden {
-  display: none;
-}
-
-
 .search-form {
   height: 40px;
   margin-top: 36px;
@@ -79,7 +74,8 @@ img {
 
 .btn-load-div {
   display: flex;
-  justify-content: center
+  justify-content: center;
+  padding: 32px;
 }
 
 .gallery-box {
@@ -117,6 +113,12 @@ img {
   border-bottom-right-radius: 4px
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
 p {
   width: auto;
   text-align: center;
@@ -126,7 +128,8 @@ p {
   font-style: normal;
   font-weight: 700;
   line-height: 1em;
-  letter-spacing: .64px
+  letter-spacing: .64px;
+  padding-top: 12px;
 }
 
 .loader {
@@ -160,4 +163,8 @@ p {
     0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
     50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
     75%, 100%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+}
+
+.is-hidden {
+  display: none;
 }
