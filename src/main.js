@@ -9,6 +9,7 @@ const gallery = document.querySelector(".gallery");
 const searchForm = document.querySelector(".search-form");
 const loading = document.querySelector(".loading");
 const btnLoad = document.querySelector(".btn-load");
+const btnLoadDiv = document.querySelector(".btn-load-div")
 
 const api = axios.create({
   baseURL: 'https://pixabay.com/api/',
@@ -71,16 +72,14 @@ const createGetHitsRequest = (q) => {
       if (page >= Math.ceil( totalHits / per_page)) {
         isLastPage = true;
       }
-      
       page++;
-      
       if (isLastPage && totalHits != 0) {
-        btnLoad.style.display = "none";
+        btnLoadDiv.classList.add('is-hidden');
         messageInfo();
       }
       if (totalHits == 0) {
+        btnLoadDiv.classList.add('is-hidden');
         messageError();
-        return;
       }
       return hits;
     } catch(error) {
@@ -96,19 +95,18 @@ searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   
   if (doFetch != null) {
-    btnLoad.removeEventListener("click", doFetch);
     btnLoad.removeEventListener("click", goScroll);
     doFetch = null;
   }
 
   const data = new FormData(event.currentTarget);
-  const search = data.get("search");
+  const search = data.get("search").trim();
   if (!search) {
     messageWarning()
     return;
   }
   gallery.innerHTML = "";
-  btnLoad.style.display = "block";
+  btnLoadDiv.classList.remove('is-hidden');
   const fetchHits = createGetHitsRequest(search);
   event.currentTarget.reset();
   doFetch = async () => {
@@ -116,7 +114,7 @@ searchForm.addEventListener("submit", async (event) => {
       promise: fetchHits,
       spinner: loading,
     })
-
+    
     renderHits(articles);
   }
 
@@ -128,8 +126,7 @@ searchForm.addEventListener("submit", async (event) => {
   goScroll = async () => {
     await scroll ({promise: doFetch})
   }
-  
-  btnLoad.addEventListener('click', doFetch);
+
   btnLoad.addEventListener('click', goScroll);
   });
 
@@ -145,16 +142,17 @@ const makePromiseWithSpinner = async ({ promise, spinner, className = 'is-hidden
   return response;
 };
 
-const scroll = async ({promise}) => {
+const scroll = async ({ promise }) => {
   const imgItem = document.querySelector('.gallery-item')
   const dataImgItem = imgItem.getBoundingClientRect().height;
+  const viewportHeight = document.documentElement.clientHeight;
+
     const response = await promise();
     window.scrollBy({
-    top: dataImgItem*2,
+    top: dataImgItem*Math.floor(viewportHeight/dataImgItem),
     left: 0,
     behavior: "smooth",
   });
-  return promise;
   }
 
   const messageWarning = () => iziToast.warning({
