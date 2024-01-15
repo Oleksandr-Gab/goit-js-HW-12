@@ -93,16 +93,14 @@ let goScroll = null;
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  
+  gallery.innerHTML = "";
+  btnLoadDiv.classList.add('is-hidden');
   if (doFetch != null) {
     btnLoad.removeEventListener("click", goScroll);
     doFetch = null;
   }
-
   const data = new FormData(event.currentTarget);
   const search = data.get("search").trim();
-  gallery.innerHTML = "";
-  btnLoadDiv.classList.add('is-hidden');
   if (!search) {
     messageWarning()
     return;
