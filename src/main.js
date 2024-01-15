@@ -101,11 +101,11 @@ searchForm.addEventListener("submit", async (event) => {
 
   const data = new FormData(event.currentTarget);
   const search = data.get("search").trim();
+  gallery.innerHTML = "";
   if (!search) {
     messageWarning()
     return;
   }
-  gallery.innerHTML = "";
   btnLoadDiv.classList.remove('is-hidden');
   const fetchHits = createGetHitsRequest(search);
   event.currentTarget.reset();
