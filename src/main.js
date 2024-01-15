@@ -5,6 +5,11 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
 
 
+const gallery = document.querySelector(".gallery");
+const searchForm = document.querySelector(".search-form");
+const loading = document.querySelector(".loading");
+const btnLoad = document.querySelector(".btn-load");
+
 const api = axios.create({
   baseURL: 'https://pixabay.com/api/',
   params: {
@@ -14,23 +19,6 @@ const api = axios.create({
     safesearch: true,
   }
 });
-
-const messageWarning = () => iziToast.warning({
-  position: 'topRight',
-  message:
-    'Please, fill in the field!',
-});
-
-const messageError = () => iziToast.error({
-            position: 'topRight',
-            message:
-              'Sorry, there are no images matching your search query. Please try again!',
-          });
-
-const gallery = document.querySelector(".gallery");
-const searchForm = document.querySelector(".search-form");
-const loading = document.querySelector(".loading");
-const btnLoad = document.querySelector(".btn-load")
 
 function renderHits(hits = []) {
   const renderImg = hits.reduce((html, {largeImageURL, webformatURL, tags, likes, views, comments, downloads}) => {
@@ -49,7 +37,6 @@ function renderHits(hits = []) {
   </li>`
       );
     }, '');  
-    
   gallery.insertAdjacentHTML("beforeend", renderImg);
   lightbox.refresh();
 }
@@ -63,7 +50,6 @@ const lightbox = new SimpleLightbox('.gallery a', {
   docClose: true,
 });
 
-
 const getHits = async (params) => {
   try {  
     const response = await api.get("", { params });
@@ -72,8 +58,6 @@ const getHits = async (params) => {
     console.error(error);
   } 
 }
-
-
 
 const createGetHitsRequest = (q) => {
   let page = 1;
@@ -89,9 +73,12 @@ const createGetHitsRequest = (q) => {
       }
       
       page++;
-
-      if (isLastPage) {btnLoad.style.display = "none"}
-      if (hits.length == 0) {
+      
+      if (isLastPage && totalHits != 0) {
+        btnLoad.style.display = "none";
+        messageInfo();
+      }
+      if (totalHits == 0) {
         messageError();
         return;
       }
@@ -103,15 +90,17 @@ const createGetHitsRequest = (q) => {
 }
 
 let doFetch = null;
+let goScroll = null;
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
+  
   if (doFetch != null) {
     btnLoad.removeEventListener("click", doFetch);
+    btnLoad.removeEventListener("click", goScroll);
     doFetch = null;
   }
- 
+
   const data = new FormData(event.currentTarget);
   const search = data.get("search");
   if (!search) {
@@ -135,8 +124,14 @@ searchForm.addEventListener("submit", async (event) => {
     promise: doFetch,
     spinner: loading,
   });
+
+  goScroll = async () => {
+    await scroll ({promise: doFetch})
+  }
+  
   btnLoad.addEventListener('click', doFetch);
-});
+  btnLoad.addEventListener('click', goScroll);
+  });
 
 
 const makePromiseWithSpinner = async ({ promise, spinner, className = 'is-hidden' }) => {
@@ -147,6 +142,35 @@ const makePromiseWithSpinner = async ({ promise, spinner, className = 'is-hidden
 
   spinner.classList.add(className);
   btnLoad.classList.remove(className);
-
   return response;
 };
+
+const scroll = async ({promise}) => {
+  const imgItem = document.querySelector('.gallery-item')
+  const dataImgItem = imgItem.getBoundingClientRect().height;
+    const response = await promise();
+    window.scrollBy({
+    top: dataImgItem*2,
+    left: 0,
+    behavior: "smooth",
+  });
+  return promise;
+  }
+
+  const messageWarning = () => iziToast.warning({
+    position: 'topRight',
+    message:
+      'Please, fill in the field!',
+  });
+  
+  const messageInfo = () => iziToast.info({
+    position: 'topRight',
+    message:
+    "We're sorry, but you've reached the end of search results.",
+  });
+  
+  const messageError = () => iziToast.error({
+    position: 'topRight',
+    message:
+      'Sorry, there are no images matching your search query. Please try again!',
+  });
